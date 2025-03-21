@@ -1,0 +1,113 @@
+---
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { GenerateContentResult } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(import.meta.env.GEMINI_API_KEY);
+
+export const prerender = false;
+
+interface StorySegment {
+  text: string;
+  imagePrompt?: string;
+  imageUrl?: string;
+}
+
+async function generateStory(prompt: string): Promise<StorySegment[]> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+  
+  const result = await model.generateContent(`
+    Write a short story based on this prompt: "${prompt}"
+    For each major scene or moment in the story, suggest an image prompt that could illustrate that moment.
+    Format the response as JSON with this structure:
+    {
+      "segments": [
+        {
+          "text": "story text for this segment",
+          "imagePrompt": "detailed prompt for an image to illustrate this segment"
+        }
+      ]
+    }
+  `);
+
+  const response = JSON.parse(result.response.text());
+  return response.segments;
+}
+
+async function generateImage(prompt: string): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+  const result = await model.generateContent(prompt);
+  const imageData = result.response.text();
+  // In a real implementation, you would process this through an image generation API
+  // For now, we'll return a placeholder
+  return `https://placehold.co/600x400?text=${encodeURIComponent(prompt)}`;
+}
+
+let story: StorySegment[] = [];
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  try {
+    const data = await Astro.request.formData();
+    const prompt = data.get('prompt')?.toString() || '';
+    story = await generateStory(prompt);
+    
+    // Generate images for each segment
+    for (let segment of story) {
+      if (segment.imagePrompt) {
+        segment.imageUrl = await generateImage(segment.imagePrompt);
+      }
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'An error occurred';
+  }
+}
+---
+
+<div class="max-w-4xl mx-auto">
+  <form method="POST" class="mb-8">
+    <div class="flex flex-col gap-4">
+      <label for="prompt" class="text-lg font-medium">
+        Enter your story prompt:
+      </label>
+      <textarea
+        name="prompt"
+        id="prompt"
+        rows="4"
+        class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        placeholder="Once upon a time..."
+        required
+      ></textarea>
+      <button
+        type="submit"
+        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+      >
+        Generate Story
+      </button>
+    </div>
+  </form>
+
+  {error && (
+    <div class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg">
+      {error}
+    </div>
+  )}
+
+  {story.length > 0 && (
+    <div class="space-y-8">
+      {story.map((segment) => (
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <p class="text-gray-800 mb-4 leading-relaxed">
+            {segment.text}
+          </p>
+          {segment.imageUrl && (
+            <img
+              src={segment.imageUrl}
+              alt={segment.imagePrompt}
+              class="w-full h-auto rounded-lg shadow-sm"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+</div>

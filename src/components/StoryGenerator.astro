@@ -53,12 +53,15 @@ async function generateImage(prompt: string): Promise<string> {
 
 let story: StorySegment[] = [];
 let error: string | null = null;
+let isLoading = false;
+let lastPrompt = '';
 
 if (Astro.request.method === 'POST') {
   try {
+    isLoading = true;
     const data = await Astro.request.formData();
-    const prompt = data.get('prompt')?.toString() || '';
-    story = await generateStory(prompt);
+    lastPrompt = data.get('prompt')?.toString() || '';
+    story = await generateStory(lastPrompt);
     
     // Generate images for each segment
     for (let segment of story) {
@@ -68,12 +71,14 @@ if (Astro.request.method === 'POST') {
     }
   } catch (e) {
     error = e instanceof Error ? e.message : 'An error occurred';
+  } finally {
+    isLoading = false;
   }
 }
 ---
 
 <div class="max-w-4xl mx-auto">
-  <form method="POST" class="mb-8">
+  <form method="POST" class="mb-8" id="storyForm">
     <div class="flex flex-col gap-4">
       <label for="prompt" class="text-lg font-medium">
         Enter your story prompt:
@@ -85,12 +90,15 @@ if (Astro.request.method === 'POST') {
         class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         placeholder="Once upon a time..."
         required
-      ></textarea>
+        value={lastPrompt}
+      >{lastPrompt}</textarea>
       <button
         type="submit"
-        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isLoading}
+        id="submitBtn"
       >
-        Generate Story
+        {isLoading ? 'Generating Story...' : 'Generate Story'}
       </button>
     </div>
   </form>
@@ -101,22 +109,47 @@ if (Astro.request.method === 'POST') {
     </div>
   )}
 
-  {story.length > 0 && (
-    <div class="space-y-8">
-      {story.map((segment) => (
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <p class="text-gray-800 mb-4 leading-relaxed">
-            {segment.text}
-          </p>
-          {segment.imageUrl && (
-            <img
-              src={segment.imageUrl}
-              alt={segment.imagePrompt}
-              class="w-full h-auto rounded-lg shadow-sm"
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  )}
+  <div id="loadingState" class="space-y-8 animate-pulse hidden">
+    {[1, 2, 3].map(() => (
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+        <div class="h-4 bg-gray-200 rounded w-5/6 mb-8"></div>
+        <div class="h-64 bg-gray-200 rounded w-full"></div>
+      </div>
+    ))}
+  </div>
+
+  <div id="resultState" class={`space-y-8 ${story.length === 0 ? 'hidden' : ''}`}>
+    {story.map((segment) => (
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <p class="text-gray-800 mb-4 leading-relaxed">
+          {segment.text}
+        </p>
+        {segment.imageUrl && (
+          <img
+            src={segment.imageUrl}
+            alt={segment.imagePrompt}
+            class="w-full h-auto rounded-lg shadow-sm"
+          />
+        )}
+      </div>
+    ))}
+  </div>
 </div>
+
+<script>
+  const form = document.getElementById('storyForm');
+  const loadingState = document.getElementById('loadingState');
+  const resultState = document.getElementById('resultState');
+  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+
+  if (form && loadingState && resultState && submitBtn) {
+    form.addEventListener('submit', (e) => {
+      loadingState.classList.remove('hidden');
+      resultState.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Generating Story...';
+    });
+  }
+</script>

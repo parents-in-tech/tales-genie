@@ -15,7 +15,7 @@ An AI-powered story generator built with Astro, Vercel AI SDK, and Google's Gemi
 2. Install dependencies: `npm install`
 3. Create a `.env` file with your API keys:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
    ```
 4. Run the development server: `npm run dev`
 

@@ -2,6 +2,12 @@
 
 An AI-powered story generator built with Astro, Vercel AI SDK, and Google's Gemini API. This application creates engaging stories with inline images generated along the plot line.
 
+Demo URL: [astro-story-generator.vercel.app](https://astro-story-generator.vercel.app/)
+
+## Screenshot
+
+![image](demo.png)
+
 ## Features
 
 - Story generation using Gemini AI

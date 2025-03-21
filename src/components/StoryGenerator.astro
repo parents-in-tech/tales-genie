@@ -1,8 +1,12 @@
 ---
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { GenerateContentResult } from '@google/generative-ai';
+import { google, createGoogleGenerativeAI } from '@ai-sdk/google';
+import { generateText } from 'ai';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.GEMINI_API_KEY);
+const provider = createGoogleGenerativeAI({
+  apiKey: import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY
+});
+
+const model = provider('gemini-2.0-flash-exp');
 
 export const prerender = false;
 
@@ -13,33 +17,34 @@ interface StorySegment {
 }
 
 async function generateStory(prompt: string): Promise<StorySegment[]> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-  
-  const result = await model.generateContent(`
-    Write a short story based on this prompt: "${prompt}"
-    For each major scene or moment in the story, suggest an image prompt that could illustrate that moment.
-    Format the response as JSON with this structure:
-    {
-      "segments": [
-        {
-          "text": "story text for this segment",
-          "imagePrompt": "detailed prompt for an image to illustrate this segment"
-        }
-      ]
-    }
-  `);
+  const result = await generateText({
+    model,
+    prompt: `Write a short story based on this prompt: "${prompt}". For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. Return the response in JSON format with an array of segments, where each segment has a "text" field for the story text and an "imagePrompt" field for the image description. Do not include any markdown formatting or code blocks. Only return the raw JSON object.`
+  });
 
-  const response = JSON.parse(result.response.text());
-  return response.segments;
+  try {
+    // Clean the response text to ensure we only have JSON
+    const cleanJson = result.text.trim().replace(/^```json\s*|\s*```$/g, '');
+    const response = JSON.parse(cleanJson);
+    return response.segments || [];
+  } catch (e) {
+    console.error('Failed to parse JSON:', result.text);
+    throw new Error('Failed to generate story: Invalid response format');
+  }
 }
 
 async function generateImage(prompt: string): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
-  const result = await model.generateContent(prompt);
-  const imageData = result.response.text();
-  // In a real implementation, you would process this through an image generation API
-  // For now, we'll return a placeholder
-  return `https://placehold.co/600x400?text=${encodeURIComponent(prompt)}`;
+  const result = await generateText({
+    model,
+    prompt,
+    providerOptions: {
+      google: { responseModalities: ['TEXT', 'IMAGE'] }
+    }
+  });
+
+  // Get the first image file from the response
+  const imageFile = result.files?.[0];
+  return imageFile ? `data:${imageFile.mimeType};base64,${imageFile.base64}` : `https://placehold.co/600x400?text=${encodeURIComponent(prompt)}`;
 }
 
 let story: StorySegment[] = [];

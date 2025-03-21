@@ -1,8 +1,7 @@
-/// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
 
 interface ImportMetaEnv {
-  readonly GEMINI_API_KEY: string;
+  readonly GOOGLE_GENERATIVE_AI_API_KEY: string;
 }
 
 interface ImportMeta {

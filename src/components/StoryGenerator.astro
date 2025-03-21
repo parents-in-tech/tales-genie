@@ -19,7 +19,11 @@ interface StorySegment {
 async function generateStory(prompt: string): Promise<StorySegment[]> {
   const result = await generateText({
     model,
-    prompt: `Write a short story based on this prompt: "${prompt}". For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. Return the response in JSON format with an array of segments, where each segment has a "text" field for the story text and an "imagePrompt" field for the image description. Do not include any markdown formatting or code blocks. Only return the raw JSON object.`
+    prompt: `Write a short story based on this prompt: "${prompt}". 
+    For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. 
+    Return the response in JSON format with an array of segments, where each segment has 
+    a "text" field for the story text and an "imagePrompt" field for the image description. 
+    Do not include any markdown formatting or code blocks. Only return the raw JSON object.`
   });
 
   try {

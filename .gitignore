@@ -45,5 +45,5 @@ Thumbs.db
 *.pem
 
 # Misc
-.vercel
+
 .netlify

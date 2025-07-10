@@ -1,0 +1,16 @@
+
+---
+import { getTranslator } from '../utils/i18n';
+
+const lang = Astro.cookies.get('language')?.value || 'en';
+const t = getTranslator(lang);
+---
+
+<div class="text-center py-16">
+  <h1 class="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4">
+    {t('talesGenie')}
+  </h1>
+  <p class="text-xl text-text/80">
+    {t('createStories')}
+  </p>
+</div>

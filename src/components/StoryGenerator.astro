@@ -1,155 +1,240 @@
 ---
-import { google, createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText } from 'ai';
+import { getTranslator } from '../utils/i18n';
 
-const provider = createGoogleGenerativeAI({
-  apiKey: import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY
-});
+const lang = Astro.cookies.get('language')?.value || 'en';
+const t = getTranslator(lang);
 
-const model = provider('gemini-2.0-flash-exp');
-
-export const prerender = false;
-
-interface StorySegment {
-  text: string;
-  imagePrompt?: string;
-  imageUrl?: string;
-}
-
-async function generateStory(prompt: string): Promise<StorySegment[]> {
-  const result = await generateText({
-    model,
-    prompt: `Write a short story based on this prompt: "${prompt}". 
-    For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. 
-    Return the response in JSON format with an array of segments, where each segment has 
-    a "text" field for the story text and an "imagePrompt" field for the image description. 
-    Do not include any markdown formatting or code blocks. Only return the raw JSON object.`
-  });
-
-  try {
-    // Clean the response text to ensure we only have JSON
-    const cleanJson = result.text.trim().replace(/^```json\s*|\s*```$/g, '');
-    const response = JSON.parse(cleanJson);
-    return response.segments || [];
-  } catch (e) {
-    console.error('Failed to parse JSON:', result.text);
-    throw new Error('Failed to generate story: Invalid response format');
-  }
-}
-
-async function generateImage(prompt: string): Promise<string> {
-  const result = await generateText({
-    model,
-    prompt,
-    providerOptions: {
-      google: { responseModalities: ['TEXT', 'IMAGE'] }
-    }
-  });
-
-  // Get the first image file from the response
-  const imageFile = result.files?.[0];
-  return imageFile ? `data:${imageFile.mimeType};base64,${imageFile.base64}` : `https://placehold.co/600x400?text=${encodeURIComponent(prompt)}`;
-}
-
-let story: StorySegment[] = [];
-let error: string | null = null;
-let isLoading = false;
-let lastPrompt = '';
-
-if (Astro.request.method === 'POST') {
-  try {
-    isLoading = true;
-    const data = await Astro.request.formData();
-    lastPrompt = data.get('prompt')?.toString() || '';
-    story = await generateStory(lastPrompt);
-    
-    // Generate images for each segment
-    for (let segment of story) {
-      if (segment.imagePrompt) {
-        segment.imageUrl = await generateImage(segment.imagePrompt);
-      }
-    }
-  } catch (e) {
-    error = e instanceof Error ? e.message : 'An error occurred';
-  } finally {
-    isLoading = false;
-  }
-}
+const supportedLanguages = {
+  en: 'English',
+  ne: 'नेपाली',
+  hi: 'हिन्दी',
+  bn: 'বাংলা',
+  te: 'తెలుగు',
+  es: 'Español',
+};
 ---
 
 <div class="max-w-4xl mx-auto">
-  <form method="POST" class="mb-8" id="storyForm">
-    <div class="flex flex-col gap-4">
-      <label for="prompt" class="text-lg font-medium">
-        Enter your story prompt:
-      </label>
-      <textarea
-        name="prompt"
-        id="prompt"
-        rows="4"
-        class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        placeholder="Once upon a time..."
-        required
-        value={lastPrompt}
-      >{lastPrompt}</textarea>
-      <button
-        type="submit"
-        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isLoading}
-        id="submitBtn"
-      >
-        {isLoading ? 'Generating Story...' : 'Generate Story'}
-      </button>
-    </div>
-  </form>
+  <!-- Language Selector -->
+  <div class="mb-4 flex justify-end p-4 bg-background">
+    <select
+      id="language-selector"
+      class="bg-background border border-primary text-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-auto p-2.5"
+    >
+      {Object.entries(supportedLanguages).map(([code, name]) => (
+        <option value={code} selected={code === lang}>{name}</option>
+      ))}
+    </select>
+  </div>
+  <!-- Form Container - Always visible -->
+  <div id="formContainer" class="mb-8 transition-all duration-300">
+    <form id="storyForm">
+      <div class="flex flex-col gap-4 p-4 bg-background">
+        
+        <div class="relative p-4 bg-background">
+          <textarea
+            name="prompt"
+            id="prompt"
+            rows="4"
+            class="w-full p-4 pr-16 pb-12 border rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-background text-text placeholder-text/70"
+            placeholder={t('placeholder')}
+            required
+          ></textarea>
+          <button
+            type="submit"
+            class="absolute bottom-3 right-3 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+            id="submitBtn"
+          >
+            <!-- Magic wand icon (default state) -->
+            <svg id="wandIcon" class="h-5 w-5 text-background transition-all duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+            </svg>
+            
+            <!-- Loading spinner with more sophisticated animation -->
+            <div id="loadingSpinner" class="hidden relative">
+              <div class="flex space-x-1">
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+              </div>
+            </div>
+            <div id="loadingBg" class="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary opacity-0 transition-opacity duration-300 rounded-full"></div>
+          </button>
+        </div>
+    </form>
+  </div>
 
-  {error && (
-    <div class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg">
-      {error}
-    </div>
-  )}
+  <!-- Error State -->
+  <div id="errorState" class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg hidden"></div>
 
-  <div id="loadingState" class="space-y-8 animate-pulse hidden">
-    {[1, 2, 3].map(() => (
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-5/6 mb-8"></div>
-        <div class="h-64 bg-gray-200 rounded w-full"></div>
+  <!-- Enhanced Loading State with Cool Animations -->
+  <div id="loadingState" class="space-y-8 hidden transition-all duration-500 ease-in-out">
+    <!-- Main loading header -->
+    <div class="text-center py-8">
+      <div class="inline-flex items-center justify-center space-x-2 mb-4">
+        <div class="relative">
+          <!-- Rotating gemini-like icon -->
+          <div class="w-12 h-12 border-4 border-secondary/50 border-t-primary rounded-full animate-spin"></div>
+          <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-primary rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+        </div>
+        <div class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          {t('generatingStory')} 🚀
+        </div>
+      </div>
+      
+      <!-- Animated dots -->
+      <div class="flex justify-center space-x-1 mb-6">
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 200ms"></div>
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 400ms"></div>
+      </div>
+      
+      <!-- Progress bar -->
+      <div class="w-full max-w-md mx-auto bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse" style="width: 100%; animation-duration: 2s;"></div>
+      </div>
+    </div>
+    
+    <!-- Animated story previews -->
+    {[1, 2, 3].map((_, index) => (
+      <div class="bg-white p-6 rounded-lg shadow-md animate-pulse" style={`animation-delay: ${index * 200}ms`}>
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+        </div>
+        
+        <div class="space-y-3 mb-6">
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        
+        <!-- Image placeholder with shimmer effect -->
+        <div class="relative h-64 bg-gray-200 rounded-lg overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
       </div>
     ))}
   </div>
 
-  <div id="resultState" class={`space-y-8 ${story.length === 0 ? 'hidden' : ''}`}>
-    {story.map((segment) => (
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <p class="text-gray-800 mb-4 leading-relaxed">
-          {segment.text}
-        </p>
-        {segment.imageUrl && (
-          <img
-            src={segment.imageUrl}
-            alt={segment.imagePrompt}
-            class="w-full h-auto rounded-lg shadow-sm"
-          />
-        )}
-      </div>
-    ))}
-  </div>
+  <!-- Story Results -->
+  <div id="resultState" class="space-y-8 transition-all duration-500 ease-in-out hidden opacity-0"></div>
 </div>
 
 <script>
   const form = document.getElementById('storyForm');
+  const formContainer = document.getElementById('formContainer');
+  const promptTextarea = document.getElementById('prompt') as HTMLTextAreaElement;
   const loadingState = document.getElementById('loadingState');
   const resultState = document.getElementById('resultState');
+  const errorState = document.getElementById('errorState');
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  
+  const loadingBg = document.getElementById('loadingBg');
+  const wandIcon = document.getElementById('wandIcon');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  const langSelector = document.getElementById('language-selector') as HTMLSelectElement;
 
-  if (form && loadingState && resultState && submitBtn) {
-    form.addEventListener('submit', (e) => {
+  if (form && formContainer && promptTextarea && loadingState && resultState && errorState && submitBtn && loadingBg && wandIcon && loadingSpinner && langSelector) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Show loading state
       loadingState.classList.remove('hidden');
-      resultState.classList.add('hidden');
+      resultState.classList.add('hidden', 'opacity-0');
+      errorState.classList.add('hidden');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Generating Story...';
+      loadingBg.classList.remove('opacity-0');
+      loadingBg.classList.add('opacity-100');
+      wandIcon.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: promptTextarea.value,
+            lang: langSelector.value,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'An unknown error occurred');
+        }
+
+        const { story } = await response.json();
+
+        // Clear previous results
+        resultState.innerHTML = '';
+
+        // Render new story
+        story.forEach(segment => {
+          const segmentDiv = document.createElement('div');
+          segmentDiv.className = 'bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:shadow-lg';
+          
+          const p = document.createElement('p');
+          p.className = 'text-gray-800 mb-4 leading-relaxed';
+          p.textContent = segment.text;
+          segmentDiv.appendChild(p);
+
+          if (segment.imageUrl) {
+            const img = document.createElement('img');
+            img.src = segment.imageUrl;
+            img.alt = segment.imagePrompt;
+            img.className = 'w-full h-auto rounded-lg shadow-sm';
+            segmentDiv.appendChild(img);
+          }
+
+          resultState.appendChild(segmentDiv);
+        });
+
+        resultState.classList.remove('hidden', 'opacity-0');
+
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'An error occurred';
+        errorState.textContent = error;
+        errorState.classList.remove('hidden');
+      } finally {
+        // Hide loading state
+        loadingState.classList.add('hidden');
+        submitBtn.disabled = false;
+        loadingBg.classList.add('opacity-0');
+        loadingBg.classList.remove('opacity-100');
+        wandIcon.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+      }
+    });
+
+    promptTextarea.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        submitBtn.click();
+      }
+    });
+
+    langSelector.addEventListener('change', (event) => {
+      const selectElement = event.target as HTMLSelectElement;
+      const newLang = selectElement.value;
+      
+      // Set cookie to expire in 30 days, making it persistent across sessions.
+      const d = new Date();
+      d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+      document.cookie = `language=${newLang};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+      window.location.reload();
     });
   }
 </script>

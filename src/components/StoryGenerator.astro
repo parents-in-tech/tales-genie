@@ -78,9 +78,29 @@ if (Astro.request.method === 'POST') {
     isLoading = false;
   }
 }
+
+const supportedLanguages = {
+  en: 'English',
+  ne: 'नेपाली',
+  hi: 'हिन्दी',
+  bn: 'বাংলা',
+  te: 'తెలుగు',
+  es: 'Español',
+};
 ---
 
 <div class="max-w-4xl mx-auto">
+  <!-- Language Selector -->
+  <div class="mb-4 flex justify-end">
+    <select
+      id="language-selector"
+      class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-auto p-2.5"
+    >
+      {Object.entries(supportedLanguages).map(([code, name]) => (
+        <option value={code} selected={code === lang}>{name}</option>
+      ))}
+    </select>
+  </div>
   <!-- Form Container - Always visible -->
   <div id="formContainer" class="mb-8 transition-all duration-300">
     <form method="POST" id="storyForm">
@@ -295,6 +315,20 @@ if (Astro.request.method === 'POST') {
     // Check if we have story results on page load and reset UI accordingly
     if (window.location.search.includes('') && resultState.children.length > 0) {
       resetUI();
+    }
+
+    const langSelector = document.getElementById('language-selector');
+    if (langSelector) {
+      langSelector.addEventListener('change', (event) => {
+        const selectElement = event.target as HTMLSelectElement;
+        const newLang = selectElement.value;
+        
+        // Set cookie to expire in 30 days, making it persistent across sessions.
+        const d = new Date();
+        d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+        document.cookie = `language=${newLang};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+        window.location.reload();
+      });
     }
   }
 </script>

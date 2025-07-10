@@ -1,5 +1,4 @@
 ---
-import LanguageSelector from '../components/LanguageSelector.astro';
 import { getTranslator } from '../utils/i18n';
 
 interface Props {
@@ -29,7 +28,6 @@ const t = getTranslator(lang);
     <header class="bg-surface shadow-md z-10">
       <nav class="w-full px-6 py-4 flex justify-between items-center">
         <a href="/" class="text-2xl font-bold text-primary">{t('talesGenie')}</a>
-        <LanguageSelector />
       </nav>
     </header>
     <main class="flex-1 w-full py-8">

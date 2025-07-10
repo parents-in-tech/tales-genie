@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#7C3AED',
-        secondary: '#EC4899',
-        background: '#F8FAFC',
-        surface: '#FFFFFF',
-        text: '#1E293B',
+        primary: '#D5FC51',
+        secondary: '#D9D9D9',
+        background: '#2A2A2A',
+        surface: '#D9D9D9',
+        text: '#FFFFFF',
       },
       keyframes: {
         slideIn: {

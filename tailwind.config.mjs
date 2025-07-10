@@ -19,10 +19,15 @@ export default {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-100%)' },
         },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         slideIn: 'slideIn 0.3s ease-in-out',
         slideOut: 'slideOut 0.3s ease-in-out',
+        shimmer: 'shimmer 2s infinite ease-in-out',
       },
     },
   },

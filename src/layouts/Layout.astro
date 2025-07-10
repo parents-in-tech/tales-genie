@@ -1,5 +1,4 @@
 ---
-import Sidebar from '../components/Sidebar.astro';
 import LanguageSelector from '../components/LanguageSelector.astro';
 import { getTranslator } from '../utils/i18n';
 
@@ -26,26 +25,21 @@ const t = getTranslator(lang);
       document.cookie = `language=${lang};path=/`;
     </script>
   </head>
-  <body class="bg-background text-text">
-    <div class="flex h-screen">
-      <Sidebar t={t} />
-      <div class="flex flex-col flex-1">
-        <header class="bg-surface shadow-md z-10">
-          <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-primary">{t('talesGenie')}</a>
-            <LanguageSelector />
-          </nav>
-        </header>
-        <main class="flex-1 overflow-y-auto p-8">
-          <slot />
-        </main>
-        <footer class="bg-surface border-t">
-          <div class="container mx-auto px-6 py-4 text-center text-gray-500">
-            © {new Date().getFullYear()} {t('talesGenie')}. {t('allRightsReserved')}
-          </div>
-        </footer>
+  <body class="bg-background text-text min-h-screen flex flex-col">
+    <header class="bg-surface shadow-md z-10">
+      <nav class="w-full px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-primary">{t('talesGenie')}</a>
+        <LanguageSelector />
+      </nav>
+    </header>
+    <main class="flex-1 w-full py-8">
+      <slot />
+    </main>
+    <footer class="bg-surface border-t">
+      <div class="w-full px-6 py-4 text-center text-gray-500">
+        © {new Date().getFullYear()} {t('talesGenie')}. {t('allRightsReserved')}
       </div>
-    </div>
+    </footer>
   </body>
 </html>
 

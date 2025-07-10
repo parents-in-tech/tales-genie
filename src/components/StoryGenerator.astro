@@ -1,8 +1,6 @@
 ---
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
-import fs from 'fs/promises';
-import crypto from 'crypto';
 import { getTranslator } from '../utils/i18n';
 
 const provider = createGoogleGenerativeAI({
@@ -83,55 +81,125 @@ if (Astro.request.method === 'POST') {
 ---
 
 <div class="max-w-4xl mx-auto">
-  <form method="POST" class="mb-8" id="storyForm">
-    <div class="flex flex-col gap-4">
-      <label for="prompt" class="text-lg font-medium">
-        {t('enterPrompt')}
-      </label>
-      <textarea
-        name="prompt"
-        id="prompt"
-        rows="4"
-        class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        placeholder={t('placeholder')}
-        required
-        value={lastPrompt}
-      >{lastPrompt}</textarea>
-      <button
-        type="submit"
-        class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        disabled={isLoading}
-        id="submitBtn"
-      >
-        <span id="buttonText">{isLoading ? t('generatingStory') : t('generateStory')}</span>
-        <svg id="buttonSpinner" class:list={["animate-spin h-5 w-5 text-white ml-2", { "hidden": !isLoading }]} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </button>
-    </div>
-  </form>
+  <!-- Form Container - Always visible -->
+  <div id="formContainer" class="mb-8 transition-all duration-300">
+    <form method="POST" id="storyForm">
+      <div class="flex flex-col gap-4">
+        <label for="prompt" class="text-lg font-medium">
+          {t('enterPrompt')}
+        </label>
+        <textarea
+          name="prompt"
+          id="prompt"
+          rows="4"
+          class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+          placeholder={t('placeholder')}
+          required
+          value={lastPrompt}
+        >{lastPrompt}</textarea>
+        <button
+          type="submit"
+          class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center relative overflow-hidden group"
+          disabled={isLoading}
+          id="submitBtn"
+        >
+          <span id="buttonText" class="relative z-10">{isLoading ? t('generatingStory') : t('generateStory')}</span>
+          
+          <!-- Animated background for loading state -->
+          <div id="loadingBg" class="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 opacity-0 transition-opacity duration-300"></div>
+          
+          <!-- Cool animated icons -->
+          <div id="buttonIcons" class="ml-2 flex items-center">
+            <!-- Magic wand icon (default state) -->
+            <svg id="wandIcon" class="h-5 w-5 text-white transition-all duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+            </svg>
+            
+            <!-- Loading spinner with more sophisticated animation -->
+            <div id="loadingSpinner" class="hidden relative">
+              <div class="flex space-x-1">
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+              </div>
+            </div>
+          </div>
+        </button>
+      </div>
+    </form>
+  </div>
 
+  <!-- Error State -->
   {error && (
     <div class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg">
       {error}
     </div>
   )}
 
-  <div id="loadingState" class="space-y-8 animate-pulse hidden">
-    {[1, 2, 3].map(() => (
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-        <div class="h-4 bg-gray-200 rounded w-5/6 mb-8"></div>
-        <div class="h-64 bg-gray-200 rounded w-full"></div>
+  <!-- Enhanced Loading State with Cool Animations -->
+  <div id="loadingState" class="space-y-8 hidden transition-all duration-500 ease-in-out">
+    <!-- Main loading header -->
+    <div class="text-center py-8">
+      <div class="inline-flex items-center justify-center space-x-2 mb-4">
+        <div class="relative">
+          <!-- Rotating gemini-like icon -->
+          <div class="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-pink-600 rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+        </div>
+        <div class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          {t('generatingStory')}
+        </div>
+      </div>
+      
+      <!-- Animated dots -->
+      <div class="flex justify-center space-x-1 mb-6">
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 200ms"></div>
+        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 400ms"></div>
+      </div>
+      
+      <!-- Progress bar -->
+      <div class="w-full max-w-md mx-auto bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse" style="width: 100%; animation-duration: 2s;"></div>
+      </div>
+    </div>
+    
+    <!-- Animated story previews -->
+    {[1, 2, 3].map((_, index) => (
+      <div class="bg-white p-6 rounded-lg shadow-md animate-pulse" style={`animation-delay: ${index * 200}ms`}>
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+        </div>
+        
+        <div class="space-y-3 mb-6">
+          <div class="h-4 bg-gray-200 rounded w-full"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        
+        <!-- Image placeholder with shimmer effect -->
+        <div class="relative h-64 bg-gray-200 rounded-lg overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
       </div>
     ))}
   </div>
 
-  <div id="resultState" class={`space-y-8 ${story.length === 0 ? 'hidden' : ''}`}>
+  <!-- Story Results -->
+  <div id="resultState" class={`space-y-8 transition-all duration-500 ease-in-out ${story.length === 0 ? 'hidden opacity-0' : 'opacity-100'}`}>
     {story.map((segment) => (
-      <div class="bg-white p-6 rounded-lg shadow-md">
+      <div class="bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:shadow-lg">
         <p class="text-gray-800 mb-4 leading-relaxed">
           {segment.text}
         </p>
@@ -149,19 +217,84 @@ if (Astro.request.method === 'POST') {
 
 <script>
   const form = document.getElementById('storyForm');
+  const formContainer = document.getElementById('formContainer');
+  const promptTextarea = document.getElementById('prompt') as HTMLTextAreaElement;
   const loadingState = document.getElementById('loadingState');
   const resultState = document.getElementById('resultState');
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
   const buttonText = document.getElementById('buttonText');
-  const buttonSpinner = document.getElementById('buttonSpinner');
+  const loadingBg = document.getElementById('loadingBg');
+  const wandIcon = document.getElementById('wandIcon');
+  const loadingSpinner = document.getElementById('loadingSpinner');
 
-  if (form && loadingState && resultState && submitBtn && buttonText && buttonSpinner) {
+  if (form && formContainer && promptTextarea && loadingState && resultState && submitBtn && buttonText && loadingBg && wandIcon && loadingSpinner) {
     form.addEventListener('submit', () => {
+      // Gray out and disable the form, but keep it visible
+      formContainer.classList.add('opacity-50', 'pointer-events-none');
+      promptTextarea.disabled = true;
+      
+      // Hide any existing results
+      resultState.classList.add('hidden', 'opacity-0');
+      
+      // Show loading state
       loadingState.classList.remove('hidden');
-      resultState.classList.add('hidden');
+      
+      // Animate button state
       submitBtn.disabled = true;
       buttonText.textContent = 'Generating Story...';
-      buttonSpinner.classList.remove('hidden');
+      
+      // Show loading background with animation
+      loadingBg.classList.remove('opacity-0');
+      loadingBg.classList.add('opacity-100');
+      
+      // Switch icons with smooth transition
+      wandIcon.classList.add('hidden');
+      loadingSpinner.classList.remove('hidden');
+      
+      // Add some extra visual feedback
+      submitBtn.classList.add('transform', 'scale-95');
+      
+      // Optional: Add a subtle shake animation to the button
+      setTimeout(() => {
+        submitBtn.classList.remove('transform', 'scale-95');
+      }, 150);
     });
+    
+    // Add hover effects when not loading
+    submitBtn.addEventListener('mouseenter', () => {
+      if (!submitBtn.disabled) {
+        submitBtn.classList.add('transform', 'scale-105');
+      }
+    });
+    
+    submitBtn.addEventListener('mouseleave', () => {
+      if (!submitBtn.disabled) {
+        submitBtn.classList.remove('transform', 'scale-105');
+      }
+    });
+    
+    // Function to reset UI after story generation (this would be called when the page reloads with results)
+    function resetUI() {
+      formContainer.classList.remove('opacity-50', 'pointer-events-none');
+      promptTextarea.disabled = false;
+      loadingState.classList.add('hidden');
+      submitBtn.disabled = false;
+      buttonText.textContent = 'Generate Story';
+      loadingBg.classList.add('opacity-0');
+      loadingBg.classList.remove('opacity-100');
+      wandIcon.classList.remove('hidden');
+      loadingSpinner.classList.add('hidden');
+      
+      // Show results if they exist
+      if (resultState.children.length > 0) {
+        resultState.classList.remove('hidden', 'opacity-0');
+        resultState.classList.add('opacity-100');
+      }
+    }
+    
+    // Check if we have story results on page load and reset UI accordingly
+    if (window.location.search.includes('') && resultState.children.length > 0) {
+      resetUI();
+    }
   }
 </script>

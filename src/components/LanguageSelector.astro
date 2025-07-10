@@ -1,0 +1,53 @@
+---
+const languages = [
+  { name: 'Nepali', code: 'ne' },
+  { name: 'English', code: 'en' },
+  { name: 'Hindi', code: 'hi' },
+  { name: 'Bengali', code: 'bn' },
+  { name: 'Telugu', code: 'te' },
+  { name: 'Spanish', code: 'es' },
+];
+---
+<div class="relative">
+  <button id="language-selector-button" class="flex items-center space-x-1">
+    <span>Languages</span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 12a1 1 0 01-.707-.293l-4-4a1 1 0 111.414-1.414L10 9.586l3.293-3.293a1 1 0 111.414 1.414l-4 4A1 1 0 0110 12z" clip-rule="evenodd" />
+    </svg>
+  </button>
+  <div id="language-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden">
+    <ul class="py-1">
+      {languages.map(lang => (
+        <li>
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-code={lang.code}>
+            {lang.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<script>
+  const button = document.getElementById('language-selector-button');
+  const dropdown = document.getElementById('language-dropdown');
+
+  button.addEventListener('click', () => {
+    dropdown.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+
+  dropdown.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    const lang = target.getAttribute('data-lang-code');
+    if (lang) {
+      localStorage.setItem('language', lang);
+      window.location.reload();
+    }
+  });
+</script>

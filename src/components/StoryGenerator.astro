@@ -1,6 +1,9 @@
 ---
-import { google, createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
+import fs from 'fs/promises';
+import crypto from 'crypto';
+import { getTranslator } from '../utils/i18n';
 
 const provider = createGoogleGenerativeAI({
   apiKey: import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY
@@ -16,10 +19,10 @@ interface StorySegment {
   imageUrl?: string;
 }
 
-async function generateStory(prompt: string): Promise<StorySegment[]> {
+async function generateStory(prompt: string, lang: string): Promise<StorySegment[]> {
   const result = await generateText({
     model,
-    prompt: `Write a short story based on this prompt: "${prompt}". 
+    prompt: `Write a short story in ${lang} based on this prompt: "${prompt}". 
     For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. 
     Return the response in JSON format with an array of segments, where each segment has 
     a "text" field for the story text and an "imagePrompt" field for the image description. 
@@ -55,13 +58,15 @@ let story: StorySegment[] = [];
 let error: string | null = null;
 let isLoading = false;
 let lastPrompt = '';
+const lang = Astro.cookies.get('language')?.value || 'en';
+const t = getTranslator(lang);
 
 if (Astro.request.method === 'POST') {
   try {
     isLoading = true;
     const data = await Astro.request.formData();
     lastPrompt = data.get('prompt')?.toString() || '';
-    story = await generateStory(lastPrompt);
+    story = await generateStory(lastPrompt, lang);
     
     // Generate images for each segment
     for (let segment of story) {
@@ -81,24 +86,28 @@ if (Astro.request.method === 'POST') {
   <form method="POST" class="mb-8" id="storyForm">
     <div class="flex flex-col gap-4">
       <label for="prompt" class="text-lg font-medium">
-        Enter your story prompt:
+        {t('enterPrompt')}
       </label>
       <textarea
         name="prompt"
         id="prompt"
         rows="4"
         class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-        placeholder="Once upon a time..."
+        placeholder={t('placeholder')}
         required
         value={lastPrompt}
       >{lastPrompt}</textarea>
       <button
         type="submit"
-        class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         disabled={isLoading}
         id="submitBtn"
       >
-        {isLoading ? 'Generating Story...' : 'Generate Story'}
+        <span id="buttonText">{isLoading ? t('generatingStory') : t('generateStory')}</span>
+        <svg id="buttonSpinner" class:list={["animate-spin h-5 w-5 text-white ml-2", { "hidden": !isLoading }]} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </button>
     </div>
   </form>
@@ -143,13 +152,16 @@ if (Astro.request.method === 'POST') {
   const loadingState = document.getElementById('loadingState');
   const resultState = document.getElementById('resultState');
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const buttonText = document.getElementById('buttonText');
+  const buttonSpinner = document.getElementById('buttonSpinner');
 
-  if (form && loadingState && resultState && submitBtn) {
-    form.addEventListener('submit', (e) => {
+  if (form && loadingState && resultState && submitBtn && buttonText && buttonSpinner) {
+    form.addEventListener('submit', () => {
       loadingState.classList.remove('hidden');
       resultState.classList.add('hidden');
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Generating Story...';
+      buttonText.textContent = 'Generating Story...';
+      buttonSpinner.classList.remove('hidden');
     });
   }
 </script>

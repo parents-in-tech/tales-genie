@@ -1,83 +1,8 @@
 ---
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText } from 'ai';
 import { getTranslator } from '../utils/i18n';
 
-const provider = createGoogleGenerativeAI({
-  apiKey: import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY
-});
-
-const model = provider('gemini-2.0-flash-exp');
-
-export const prerender = false;
-
-interface StorySegment {
-  text: string;
-  imagePrompt?: string;
-  imageUrl?: string;
-}
-
-async function generateStory(prompt: string, lang: string): Promise<StorySegment[]> {
-  const result = await generateText({
-    model,
-    prompt: `Write a short story in ${lang} based on this prompt: "${prompt}". 
-    For each major scene or moment in the story, suggest an image prompt that could illustrate that moment. 
-    Return the response in JSON format with an array of segments, where each segment has 
-    a "text" field for the story text and an "imagePrompt" field for the image description. 
-    Do not include any markdown formatting or code blocks. Only return the raw JSON object.`
-  });
-
-  try {
-    // Clean the response text to ensure we only have JSON
-    const cleanJson = result.text.trim().replace(/^```json\s*|\s*```$/g, '');
-    const response = JSON.parse(cleanJson);
-    return response.segments || [];
-  } catch (e) {
-    console.error('Failed to parse JSON:', result.text);
-    throw new Error('Failed to generate story: Invalid response format');
-  }
-}
-
-async function generateImage(prompt: string): Promise<string> {
-  const result = await generateText({
-    model,
-    prompt,
-    providerOptions: {
-      google: { responseModalities: ['TEXT', 'IMAGE'] }
-    }
-  });
-
-  // Get the first image file from the response
-  const imageFile = result.files?.[0];
-  return imageFile ? `data:${imageFile.mimeType};base64,${imageFile.base64}` : `https://placehold.co/600x400?text=${encodeURIComponent(prompt)}`;
-}
-
-let story: StorySegment[] = [];
-let error: string | null = null;
-let isLoading = false;
-let lastPrompt = '';
 const lang = Astro.cookies.get('language')?.value || 'en';
 const t = getTranslator(lang);
-
-if (Astro.request.method === 'POST') {
-  try {
-    isLoading = true;
-    const data = await Astro.request.formData();
-    lastPrompt = data.get('prompt')?.toString() || '';
-    story = await generateStory(lastPrompt, lang);
-    
-    // Generate images for each segment
-    for (let segment of story) {
-      if (segment.imagePrompt) {
-        segment.imageUrl = await generateImage(segment.imagePrompt);
-      }
-    }
-  } catch (e) {
-    error = e instanceof Error ? e.message : 'An error occurred';
-  } finally {
-    isLoading = false;
-  }
-}
 
 const supportedLanguages = {
   en: 'English',
@@ -103,7 +28,7 @@ const supportedLanguages = {
   </div>
   <!-- Form Container - Always visible -->
   <div id="formContainer" class="mb-8 transition-all duration-300">
-    <form method="POST" id="storyForm">
+    <form id="storyForm">
       <div class="flex flex-col gap-4">
         <label for="prompt" class="text-lg font-medium">
           {t('enterPrompt')}
@@ -115,15 +40,13 @@ const supportedLanguages = {
           class="w-full p-4 border rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
           placeholder={t('placeholder')}
           required
-          value={lastPrompt}
-        >{lastPrompt}</textarea>
+        ></textarea>
         <button
           type="submit"
           class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center relative overflow-hidden group"
-          disabled={isLoading}
           id="submitBtn"
         >
-          <span id="buttonText" class="relative z-10">{isLoading ? t('generatingStory') : t('generateStory')}</span>
+          <span id="buttonText" class="relative z-10">{t('generateStory')}</span>
           
           <!-- Animated background for loading state -->
           <div id="loadingBg" class="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 opacity-0 transition-opacity duration-300"></div>
@@ -150,11 +73,7 @@ const supportedLanguages = {
   </div>
 
   <!-- Error State -->
-  {error && (
-    <div class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg">
-      {error}
-    </div>
-  )}
+  <div id="errorState" class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg hidden"></div>
 
   <!-- Enhanced Loading State with Cool Animations -->
   <div id="loadingState" class="space-y-8 hidden transition-all duration-500 ease-in-out">
@@ -217,22 +136,7 @@ const supportedLanguages = {
   </div>
 
   <!-- Story Results -->
-  <div id="resultState" class={`space-y-8 transition-all duration-500 ease-in-out ${story.length === 0 ? 'hidden opacity-0' : 'opacity-100'}`}>
-    {story.map((segment) => (
-      <div class="bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:shadow-lg">
-        <p class="text-gray-800 mb-4 leading-relaxed">
-          {segment.text}
-        </p>
-        {segment.imageUrl && (
-          <img
-            src={segment.imageUrl}
-            alt={segment.imagePrompt}
-            class="w-full h-auto rounded-lg shadow-sm"
-          />
-        )}
-      </div>
-    ))}
-  </div>
+  <div id="resultState" class="space-y-8 transition-all duration-500 ease-in-out hidden opacity-0"></div>
 </div>
 
 <script>
@@ -241,94 +145,99 @@ const supportedLanguages = {
   const promptTextarea = document.getElementById('prompt') as HTMLTextAreaElement;
   const loadingState = document.getElementById('loadingState');
   const resultState = document.getElementById('resultState');
+  const errorState = document.getElementById('errorState');
   const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
   const buttonText = document.getElementById('buttonText');
   const loadingBg = document.getElementById('loadingBg');
   const wandIcon = document.getElementById('wandIcon');
   const loadingSpinner = document.getElementById('loadingSpinner');
+  const langSelector = document.getElementById('language-selector') as HTMLSelectElement;
 
-  if (form && formContainer && promptTextarea && loadingState && resultState && submitBtn && buttonText && loadingBg && wandIcon && loadingSpinner) {
-    form.addEventListener('submit', () => {
-      // Gray out and disable the form, but keep it visible
-      formContainer.classList.add('opacity-50', 'pointer-events-none');
-      promptTextarea.disabled = true;
-      
-      // Hide any existing results
-      resultState.classList.add('hidden', 'opacity-0');
-      
+  if (form && formContainer && promptTextarea && loadingState && resultState && errorState && submitBtn && buttonText && loadingBg && wandIcon && loadingSpinner && langSelector) {
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
       // Show loading state
       loadingState.classList.remove('hidden');
-      
-      // Animate button state
+      resultState.classList.add('hidden', 'opacity-0');
+      errorState.classList.add('hidden');
       submitBtn.disabled = true;
       buttonText.textContent = 'Generating Story...';
-      
-      // Show loading background with animation
       loadingBg.classList.remove('opacity-0');
       loadingBg.classList.add('opacity-100');
-      
-      // Switch icons with smooth transition
       wandIcon.classList.add('hidden');
       loadingSpinner.classList.remove('hidden');
-      
-      // Add some extra visual feedback
-      submitBtn.classList.add('transform', 'scale-95');
-      
-      // Optional: Add a subtle shake animation to the button
-      setTimeout(() => {
-        submitBtn.classList.remove('transform', 'scale-95');
-      }, 150);
-    });
-    
-    // Add hover effects when not loading
-    submitBtn.addEventListener('mouseenter', () => {
-      if (!submitBtn.disabled) {
-        submitBtn.classList.add('transform', 'scale-105');
-      }
-    });
-    
-    submitBtn.addEventListener('mouseleave', () => {
-      if (!submitBtn.disabled) {
-        submitBtn.classList.remove('transform', 'scale-105');
-      }
-    });
-    
-    // Function to reset UI after story generation (this would be called when the page reloads with results)
-    function resetUI() {
-      formContainer.classList.remove('opacity-50', 'pointer-events-none');
-      promptTextarea.disabled = false;
-      loadingState.classList.add('hidden');
-      submitBtn.disabled = false;
-      buttonText.textContent = 'Generate Story';
-      loadingBg.classList.add('opacity-0');
-      loadingBg.classList.remove('opacity-100');
-      wandIcon.classList.remove('hidden');
-      loadingSpinner.classList.add('hidden');
-      
-      // Show results if they exist
-      if (resultState.children.length > 0) {
-        resultState.classList.remove('hidden', 'opacity-0');
-        resultState.classList.add('opacity-100');
-      }
-    }
-    
-    // Check if we have story results on page load and reset UI accordingly
-    if (window.location.search.includes('') && resultState.children.length > 0) {
-      resetUI();
-    }
 
-    const langSelector = document.getElementById('language-selector');
-    if (langSelector) {
-      langSelector.addEventListener('change', (event) => {
-        const selectElement = event.target as HTMLSelectElement;
-        const newLang = selectElement.value;
-        
-        // Set cookie to expire in 30 days, making it persistent across sessions.
-        const d = new Date();
-        d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
-        document.cookie = `language=${newLang};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-        window.location.reload();
-      });
-    }
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: promptTextarea.value,
+            lang: langSelector.value,
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error || 'An unknown error occurred');
+        }
+
+        const { story } = await response.json();
+
+        // Clear previous results
+        resultState.innerHTML = '';
+
+        // Render new story
+        story.forEach(segment => {
+          const segmentDiv = document.createElement('div');
+          segmentDiv.className = 'bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:shadow-lg';
+          
+          const p = document.createElement('p');
+          p.className = 'text-gray-800 mb-4 leading-relaxed';
+          p.textContent = segment.text;
+          segmentDiv.appendChild(p);
+
+          if (segment.imageUrl) {
+            const img = document.createElement('img');
+            img.src = segment.imageUrl;
+            img.alt = segment.imagePrompt;
+            img.className = 'w-full h-auto rounded-lg shadow-sm';
+            segmentDiv.appendChild(img);
+          }
+
+          resultState.appendChild(segmentDiv);
+        });
+
+        resultState.classList.remove('hidden', 'opacity-0');
+
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'An error occurred';
+        errorState.textContent = error;
+        errorState.classList.remove('hidden');
+      } finally {
+        // Hide loading state
+        loadingState.classList.add('hidden');
+        submitBtn.disabled = false;
+        buttonText.textContent = 'Generate Story';
+        loadingBg.classList.add('opacity-0');
+        loadingBg.classList.remove('opacity-100');
+        wandIcon.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+      }
+    });
+
+    langSelector.addEventListener('change', (event) => {
+      const selectElement = event.target as HTMLSelectElement;
+      const newLang = selectElement.value;
+      
+      // Set cookie to expire in 30 days, making it persistent across sessions.
+      const d = new Date();
+      d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
+      document.cookie = `language=${newLang};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+      window.location.reload();
+    });
   }
 </script>

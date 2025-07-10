@@ -1,13 +1,11 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import vercel from '@astrojs/vercel/serverless';
+import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   integrations: [tailwind()],
   output: 'server',
-  adapter: vercel({
-    analytics: true,
-  }),
+  adapter: cloudflare(),
   vite: {
     json: {
       stringify: true,

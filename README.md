@@ -29,22 +29,26 @@ An AI-powered story generator built with Astro and Google's Gemini API. This app
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/story-generator.git
    cd story-generator
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
 
 3. Create a `.env` file in the root directory and add your Google Gemini API key:
-   ```
+
+   ```bash
    GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
    ```
 
 4. Start the development server:
+
    ```bash
    pnpm dev
    ```
@@ -53,7 +57,7 @@ An AI-powered story generator built with Astro and Google's Gemini API. This app
 
 ## Project Structure
 
-```
+```bash
 story-generator/
 ├── public/              # Static assets
 │   ├── img/            # Images

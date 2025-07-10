@@ -8,4 +8,9 @@ export default defineConfig({
   adapter: vercel({
     analytics: true,
   }),
+  vite: {
+    json: {
+      stringify: true,
+    },
+  },
 });

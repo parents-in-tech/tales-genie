@@ -1,11 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import StoryGenerator from '../components/StoryGenerator.astro';
+import Hero from '../components/Hero.astro';
+import { getTranslator } from '../utils/i18n';
+
+const lang = Astro.cookies.get('language')?.value || 'en';
+const t = getTranslator(lang);
 ---
 
-<Layout title="AI Story Generator">
-  <main class="container mx-auto px-4 py-8">
-    <h1 class="text-4xl font-bold text-center mb-8">AI Story Generator</h1>
+<Layout title={t('talesGenie')}>
+  <div class="w-full max-w-6xl mx-auto px-6">
+    <Hero />
     <StoryGenerator />
-  </main>
+  </div>
 </Layout>

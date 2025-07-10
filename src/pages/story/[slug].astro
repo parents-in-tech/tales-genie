@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { getTranslator } from '../../utils/i18n';
+
+export async function getStaticPaths() {
+  const stories = await getCollection('stories');
+  return stories.map(story => ({
+    params: { slug: story.slug },
+    props: { story },
+  }));
+}
+
+const { story } = Astro.props;
+const { Content } = await story.render();
+const lang = Astro.cookies.get('language')?.value || 'en';
+const t = getTranslator(lang);
+---
+
+<Layout title={story.data.title}>
+  <div class="w-full max-w-6xl mx-auto px-6">
+    <h1 class="text-4xl font-bold mb-4">{story.data.title}</h1>
+    <p class="text-gray-500 mb-8">{new Date(story.data.date).toLocaleDateString()}</p>
+    <div class="prose lg:prose-xl max-w-none">
+      <Content />
+    </div>
+  </div>
+</Layout>

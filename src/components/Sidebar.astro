@@ -1,0 +1,68 @@
+
+
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  t: (key: string) => string;
+}
+
+const { t } = Astro.props;
+const stories = await getCollection('stories');
+---
+
+<aside class="bg-surface w-64 h-screen shadow-lg flex flex-col transition-transform duration-300 ease-in-out" id="sidebar">
+  <div class="p-4 border-b">
+    <h2 class="text-lg font-semibold text-text">{t('pastStories')}</h2>
+  </div>
+  <div class="flex-1 overflow-y-auto">
+    <div class="space-y-2 p-4">
+      {stories.map((story) => (
+        <a
+          href={`/story/${story.slug}`}
+          class="block p-3 rounded-lg hover:bg-background transition-colors"
+        >
+          <p class="text-sm font-medium text-text truncate">{story.data.title}</p>
+          <p class="text-xs text-gray-500">{new Date(story.data.date).toLocaleDateString()}</p>
+        </a>
+      ))}
+    </div>
+  </div>
+  <div class="p-4 border-t">
+    <button
+      class="w-full py-3 px-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+      onclick="window.location.href='/'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+      </svg>
+      {t('newStory')}
+    </button>
+  </div>
+</aside>
+
+<button
+  class="fixed left-4 top-4 z-50 p-2 bg-surface rounded-lg shadow-lg hover:bg-background transition-colors"
+  id="toggleSidebar"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+</button>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggleButton = document.getElementById('toggleSidebar');
+  
+  if (sidebar && toggleButton) {
+    const isOpen = localStorage.getItem('sidebarOpen') === 'true';
+    if (!isOpen) {
+      sidebar.classList.add('-translate-x-full');
+    }
+    
+    toggleButton.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      localStorage.setItem('sidebarOpen', !sidebar.classList.contains('-translate-x-full'));
+    });
+  }
+</script> 

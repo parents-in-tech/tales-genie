@@ -16,10 +16,10 @@ const supportedLanguages = {
 
 <div class="max-w-4xl mx-auto">
   <!-- Language Selector -->
-  <div class="mb-4 flex justify-end p-4 bg-background">
+  <div class="mb-4 flex justify-end p-4">
     <select
       id="language-selector"
-      class="bg-background border border-primary text-text text-sm rounded-lg focus:ring-primary focus:border-primary block w-auto p-2.5"
+      class="bg-background border border-primary text-text text-sm rounded-xl focus:ring-primary focus:border-primary block w-auto p-2.5"
     >
       {Object.entries(supportedLanguages).map(([code, name]) => (
         <option value={code} selected={code === lang}>{name}</option>
@@ -29,20 +29,19 @@ const supportedLanguages = {
   <!-- Form Container - Always visible -->
   <div id="formContainer" class="mb-8 transition-all duration-300">
     <form id="storyForm">
-      <div class="flex flex-col gap-4 p-4 bg-background">
+      <div class="flex flex-col gap-4 p-4">
         
-        <div class="relative p-4 bg-background">
-          <textarea
-            name="prompt"
-            id="prompt"
-            rows="4"
-            class="w-full p-4 pr-16 pb-12 border rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-background text-text placeholder-text/70"
+        <div class="relative p-4">
+          <textarea                           │
+ │          name="prompt"                     │
+ │          id="prompt"rows="4"
+            class="w-full p-4 pr-16 pb-12 border rounded-xl shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-background text-text placeholder-text/70"
             placeholder={t('placeholder')}
             required
           ></textarea>
           <button
             type="submit"
-            class="absolute bottom-3 right-3 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+            class="absolute bottom-4 right-4 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
             id="submitBtn"
           >
             <!-- Magic wand icon (default state) -->
@@ -134,16 +133,16 @@ const supportedLanguages = {
 <script>
   const form = document.getElementById('storyForm');
   const formContainer = document.getElementById('formContainer');
-  const promptTextarea = document.getElementById('prompt') as HTMLTextAreaElement;
+  const promptTextarea = document.getElementById('prompt');
   const loadingState = document.getElementById('loadingState');
   const resultState = document.getElementById('resultState');
   const errorState = document.getElementById('errorState');
-  const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+  const submitBtn = document.getElementById('submitBtn');
   
   const loadingBg = document.getElementById('loadingBg');
   const wandIcon = document.getElementById('wandIcon');
   const loadingSpinner = document.getElementById('loadingSpinner');
-  const langSelector = document.getElementById('language-selector') as HTMLSelectElement;
+  const langSelector = document.getElementById('language-selector');
 
   if (form && formContainer && promptTextarea && loadingState && resultState && errorState && submitBtn && loadingBg && wandIcon && loadingSpinner && langSelector) {
     form.addEventListener('submit', async (event) => {
@@ -227,7 +226,7 @@ const supportedLanguages = {
     });
 
     langSelector.addEventListener('change', (event) => {
-      const selectElement = event.target as HTMLSelectElement;
+      const selectElement = event.target;
       const newLang = selectElement.value;
       
       // Set cookie to expire in 30 days, making it persistent across sessions.

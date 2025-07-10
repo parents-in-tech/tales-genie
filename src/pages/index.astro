@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import StoryGenerator from '../components/StoryGenerator.astro';
+import Hero from '../components/Hero.astro';
 import { getTranslator } from '../utils/i18n';
 
 const lang = Astro.cookies.get('language')?.value || 'en';
@@ -9,10 +10,7 @@ const t = getTranslator(lang);
 
 <Layout title={t('talesGenie')}>
   <div class="w-full max-w-6xl mx-auto px-6">
-    <h1 class="text-4xl font-bold text-center mb-8">{t('talesGenie')}</h1>
-    <p class="text-center text-gray-600 mb-8">
-      {t('createStories')}
-    </p>
+    <Hero />
     <StoryGenerator />
   </div>
 </Layout>

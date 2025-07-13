@@ -1,4 +1,4 @@
-# AI Story Generator
+# Tales Genie
 
 An AI-powered story generator built with Astro and Google's Gemini API. This application creates engaging stories with inline images generated along the plot line.
 
@@ -8,15 +8,13 @@ An AI-powered story generator built with Astro and Google's Gemini API. This app
 - Automatic image generation for story segments
 - Responsive design with Tailwind CSS
 - Server-side rendering with Astro
-- Contact form for user feedback
-- About page with project information
 
 ## Tech Stack
 
 - [Astro](https://astro.build/) - The web framework for content-driven websites
 - [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
 - [Google Gemini AI](https://ai.google.dev/) - For story and image generation
-- [Vercel](https://vercel.com/) - For deployment and hosting
+- [Cloudflare](https://cloudflare.com/) - For deployment and hosting
 
 ## Getting Started
 
@@ -30,8 +28,8 @@ An AI-powered story generator built with Astro and Google's Gemini API. This app
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/story-generator.git
-   cd story-generator
+   git clone https://github.com/<yourusername>/tales-genie.git
+   cd tales-genie
    ```
 
 2. Install dependencies:
@@ -74,8 +72,8 @@ story-generator/
 This project is configured for deployment on Vercel. To deploy:
 
 1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Add your environment variables in the Vercel dashboard
+2. Import the repository in Cloudflare
+3. Add your environment variables in the Cloudflare dashboard
 4. Deploy!
 
 ## Contributing
@@ -90,4 +88,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Google Gemini AI for providing the AI capabilities
 - Astro team for the amazing framework
-- Vercel for hosting and deployment
+- Cloudflare for hosting and deployment

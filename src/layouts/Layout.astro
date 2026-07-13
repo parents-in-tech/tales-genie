@@ -1,5 +1,6 @@
-
 ---
+import '@fontsource-variable/fraunces';
+import '@fontsource-variable/nunito';
 import { getTranslator } from '../utils/i18n';
 
 interface Props {
@@ -15,30 +16,79 @@ const t = getTranslator(lang);
 <html lang={lang}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="AI-powered story generator with inline images">
+    <meta name="description" content={t('createStories')} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#faf3e7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#211e33" media="(prefers-color-scheme: dark)" />
     <title>{title}</title>
-    <script>
-      const lang = localStorage.getItem('language') || 'en';
-      document.cookie = `language=${lang};path=/`;
-    </script>
   </head>
-  <body class="min-h-screen flex flex-col bg-gradient-to-br from-background to-surface">
-    
-    <main class="flex-1 w-full py-8">
+  <body class="min-h-screen flex flex-col bg-paper text-ink font-body antialiased">
+    <main class="flex-1 w-full">
       <slot />
     </main>
-    
+    <footer class="py-8 text-center text-sm text-ink-soft">
+      <a
+        href="https://parentsintech.org"
+        target="_blank"
+        rel="noopener"
+        class="hover:text-ember transition-colors"
+      >{t('madeBy')}</a>
+    </footer>
   </body>
 </html>
 
 <style is:global>
   :root {
-    --accent: 213, 252, 81;
-    --accent-light: 224, 255, 128;
-    --accent-dark: 176, 217, 48;
-    --accent-gradient: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-light)) 30%, #D9D9D9 60%);
+    /* Warm paper, storybook light */
+    --c-paper: 250 243 231;
+    --c-paper-deep: 243 232 211;
+    --c-card: 255 252 246;
+    --c-ink: 61 44 30;
+    --c-ink-soft: 122 103 85;
+    --c-ember: 217 90 32;
+    --c-ember-deep: 176 67 18;
+    --c-gold: 226 160 41;
+    --c-dusk: 91 122 140;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Midnight storytime dark */
+      --c-paper: 33 30 51;
+      --c-paper-deep: 26 23 41;
+      --c-card: 43 39 66;
+      --c-ink: 240 233 218;
+      --c-ink-soft: 168 159 146;
+      --c-ember: 244 130 63;
+      --c-ember-deep: 252 158 100;
+      --c-gold: 240 183 86;
+      --c-dusk: 138 168 186;
+    }
+  }
+
+  /* Soft paper grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image: radial-gradient(rgb(var(--c-ink) / 0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  main, footer { position: relative; z-index: 1; }
+
+  ::selection {
+    background: rgb(var(--c-gold) / 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 </style>

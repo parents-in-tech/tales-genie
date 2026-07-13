@@ -8,5 +8,18 @@
   "talesGenie": "টেলস জিনি",
   "allRightsReserved": "সর্বস্বত্ব সংরক্ষিত।",
   "createStories": "AI-জেনারেটেড টেক্সট এবং ছবি দিয়ে অনন্য গল্প তৈরি করুন",
-  "letYourImaginationRunWild": "আপনার কল্পনাকে বন্য হতে দিন"
+  "letYourImaginationRunWild": "আপনার কল্পনাকে বন্য হতে দিন",
+  "madeBy": "Parents in Tech ♥ দিয়ে তৈরি",
+  "promptLabel": "আজকের গল্পটা কী নিয়ে হবে?",
+  "chip1": "একটি ড্রাগন যে অন্ধকারে ভয় পায়",
+  "chip2": "দুই প্রিয় বন্ধু চাঁদে যাওয়ার রকেট বানায়",
+  "chip3": "যে বিড়াল রাঁধুনি হতে চেয়েছিল",
+  "loadingDreaming": "জিনি তোমার গল্প ভাবছে…",
+  "loadingWriting": "শব্দগুলো লেখা হচ্ছে…",
+  "loadingPainting": "ছবিগুলো আঁকা হচ্ছে…",
+  "readAloud": "জোরে পড়ুন",
+  "stopReading": "থামুন",
+  "theEnd": "সমাপ্ত",
+  "tryAgain": "আবার চেষ্টা করুন",
+  "errorFriendly": "ওহো — জিনি নিজের প্রদীপে জড়িয়ে গেছে! আবার চেষ্টা করি।"
 }

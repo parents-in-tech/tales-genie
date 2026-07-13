@@ -12,228 +12,320 @@ const supportedLanguages = {
   te: 'తెలుగు',
   es: 'Español',
 };
+
+const chips = [t('chip1'), t('chip2'), t('chip3')];
+const loadingStages = [t('loadingDreaming'), t('loadingWriting'), t('loadingPainting')];
 ---
 
-<div class="max-w-4xl mx-auto">
-  <!-- Language Selector -->
-  <div class="mb-4 flex justify-end p-4">
-    <select
-      id="language-selector"
-      class="bg-background border border-primary text-text text-sm rounded-xl focus:ring-primary focus:border-primary block w-auto p-2.5"
-    >
-      {Object.entries(supportedLanguages).map(([code, name]) => (
-        <option value={code} selected={code === lang}>{name}</option>
-      ))}
-    </select>
-  </div>
-  <!-- Form Container - Always visible -->
-  <div id="formContainer" class="mb-8 transition-all duration-300">
+<div class="max-w-2xl mx-auto px-5 pb-16">
+  <!-- Prompt card -->
+  <section
+    id="formContainer"
+    class="bg-card rounded-3xl shadow-page border border-ink/10 p-6 sm:p-8 transition-all duration-300"
+  >
+    <div class="flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4">
+      <label for="prompt" class="font-display font-semibold text-xl sm:text-2xl leading-snug">
+        {t('promptLabel')}
+      </label>
+      <select
+        id="language-selector"
+        aria-label="Language"
+        class="shrink-0 self-end sm:self-auto bg-paper-deep/70 border border-ink/15 text-ink text-sm rounded-full focus:ring-2 focus:ring-ember focus:border-ember px-3 py-1.5 cursor-pointer"
+      >
+        {Object.entries(supportedLanguages).map(([code, name]) => (
+          <option value={code} selected={code === lang}>{name}</option>
+        ))}
+      </select>
+    </div>
+
     <form id="storyForm">
-      <div class="flex flex-col gap-4 p-4">
-        
-        <div class="relative p-4">
-          <textarea                           │
- │          name="prompt"                     │
- │          id="prompt"rows="4"
-            class="w-full p-4 pr-16 pb-12 border rounded-xl shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-background text-text placeholder-text/70"
-            placeholder={t('placeholder')}
-            required
-          ></textarea>
+      <textarea
+        name="prompt"
+        id="prompt"
+        rows="3"
+        maxlength="300"
+        class="w-full p-4 border border-ink/15 rounded-2xl bg-paper/60 text-ink placeholder-ink-soft/70 text-lg leading-relaxed focus:ring-2 focus:ring-ember focus:border-ember focus:outline-none transition-shadow resize-none"
+        placeholder={t('placeholder')}
+        required
+      ></textarea>
+
+      <!-- Prompt starter chips -->
+      <div class="flex flex-wrap gap-2 mt-3 mb-5">
+        {chips.map((chip) => (
           <button
-            type="submit"
-            class="absolute bottom-4 right-4 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
-            id="submitBtn"
-          >
-            <!-- Magic wand icon (default state) -->
-            <svg id="wandIcon" class="h-5 w-5 text-background transition-all duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-            </svg>
-            
-            <!-- Loading spinner with more sophisticated animation -->
-            <div id="loadingSpinner" class="hidden relative">
-              <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-              </div>
-            </div>
-            <div id="loadingBg" class="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary opacity-0 transition-opacity duration-300 rounded-full"></div>
-          </button>
-        </div>
+            type="button"
+            class="chip text-sm px-3.5 py-1.5 rounded-full border border-ink/15 bg-paper-deep/50 text-ink-soft hover:text-ink hover:border-ember/60 hover:bg-ember/10 transition-colors cursor-pointer"
+          >{chip}</button>
+        ))}
+      </div>
+
+      <button
+        type="submit"
+        id="submitBtn"
+        class="w-full inline-flex items-center justify-center gap-2.5 bg-ember hover:bg-ember-deep text-paper font-bold text-lg rounded-2xl px-6 py-4 shadow-page hover:shadow-page-hover active:scale-[0.99] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <svg id="wandIcon" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+        </svg>
+        <span>{t('generateStory')}</span>
+      </button>
     </form>
+  </section>
+
+  <!-- Error state -->
+  <div
+    id="errorState"
+    class="hidden mt-8 bg-card border border-ember/30 rounded-3xl shadow-page p-8 text-center"
+    role="alert"
+  >
+    <div class="text-4xl mb-3" aria-hidden="true">🧞‍♂️💨</div>
+    <p id="errorMessage" class="text-ink-soft mb-5 text-lg"></p>
+    <button
+      id="retryBtn"
+      class="inline-flex items-center gap-2 bg-ember hover:bg-ember-deep text-paper font-bold rounded-full px-6 py-2.5 transition-colors"
+    >{t('tryAgain')}</button>
   </div>
 
-  <!-- Error State -->
-  <div id="errorState" class="p-4 mb-8 bg-red-100 text-red-700 rounded-lg hidden"></div>
-
-  <!-- Enhanced Loading State with Cool Animations -->
-  <div id="loadingState" class="space-y-8 hidden transition-all duration-500 ease-in-out">
-    <!-- Main loading header -->
-    <div class="text-center py-8">
-      <div class="inline-flex items-center justify-center space-x-2 mb-4">
-        <div class="relative">
-          <!-- Rotating gemini-like icon -->
-          <div class="w-12 h-12 border-4 border-secondary/50 border-t-primary rounded-full animate-spin"></div>
-          <div class="absolute inset-0 w-12 h-12 border-4 border-transparent border-r-primary rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
-        </div>
-        <div class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          {t('generatingStory')} 🚀
-        </div>
+  <!-- Loading state -->
+  <div id="loadingState" class="hidden mt-10" aria-live="polite">
+    <div class="text-center mb-8">
+      <div class="inline-block w-16 h-16 mb-4 animate-floaty" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none" class="w-full h-full">
+          <circle cx="32" cy="32" r="13" class="fill-gold" opacity="0.9"/>
+          <circle cx="27" cy="28" r="11" class="fill-paper"/>
+          <path d="M12 12l1.5 3.8 3.9 1.2-3.9 1.2L12 22l-1.5-3.8-3.9-1.2 3.9-1.2z" class="fill-ember animate-twinkle"/>
+          <path d="M52 40l1.2 3 3.1.9-3.1 1-1.2 3-1.2-3-3.1-1 3.1-.9z" class="fill-gold animate-twinkle" style="animation-delay:0.8s"/>
+        </svg>
       </div>
-      
-      <!-- Animated dots -->
-      <div class="flex justify-center space-x-1 mb-6">
-        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 200ms"></div>
-        <div class="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style="animation-delay: 400ms"></div>
+      <p id="loadingStage" class="font-display text-2xl font-semibold"></p>
+    </div>
+    <!-- Skeleton page -->
+    <div class="bg-card rounded-3xl shadow-page border border-ink/10 overflow-hidden">
+      <div class="relative h-64 bg-paper-deep/70 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-card/70 to-transparent animate-shimmer"></div>
       </div>
-      
-      <!-- Progress bar -->
-      <div class="w-full max-w-md mx-auto bg-gray-200 rounded-full h-2 overflow-hidden">
-        <div class="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse" style="width: 100%; animation-duration: 2s;"></div>
+      <div class="p-7 space-y-3">
+        <div class="h-4 bg-paper-deep rounded-full w-full"></div>
+        <div class="h-4 bg-paper-deep rounded-full w-11/12"></div>
+        <div class="h-4 bg-paper-deep rounded-full w-4/6"></div>
       </div>
     </div>
-    
-    <!-- Animated story previews -->
-    {[1, 2, 3].map((_, index) => (
-      <div class="bg-white p-6 rounded-lg shadow-md animate-pulse" style={`animation-delay: ${index * 200}ms`}>
-        <div class="flex items-center space-x-3 mb-4">
-          <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div class="h-4 bg-gray-200 rounded w-1/4"></div>
-        </div>
-        
-        <div class="space-y-3 mb-6">
-          <div class="h-4 bg-gray-200 rounded w-full"></div>
-          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
-          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-        </div>
-        
-        <!-- Image placeholder with shimmer effect -->
-        <div class="relative h-64 bg-gray-200 rounded-lg overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer"></div>
-          <div class="absolute inset-0 flex items-center justify-center">
-            <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-        </div>
-      </div>
-    ))}
   </div>
 
-  <!-- Story Results -->
-  <div id="resultState" class="space-y-8 transition-all duration-500 ease-in-out hidden opacity-0"></div>
+  <!-- Story result -->
+  <div id="resultState" class="hidden mt-10">
+    <div class="flex items-center justify-end gap-2 mb-5">
+      <button
+        id="readAloudBtn"
+        class="inline-flex items-center gap-2 text-sm font-bold border border-ink/15 bg-card hover:border-ember/60 hover:text-ember rounded-full px-4 py-2 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+        </svg>
+        <span id="readAloudLabel">{t('readAloud')}</span>
+      </button>
+      <button
+        id="newStoryBtn"
+        class="inline-flex items-center gap-2 text-sm font-bold border border-ink/15 bg-card hover:border-ember/60 hover:text-ember rounded-full px-4 py-2 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        {t('newStory')}
+      </button>
+    </div>
+    <div id="storyPages" class="space-y-8"></div>
+    <p class="font-display text-3xl text-center mt-12 mb-4 text-ink-soft select-none" id="theEnd" aria-hidden="true">
+      ✦&nbsp;&nbsp;{t('theEnd')}&nbsp;&nbsp;✦
+    </p>
+  </div>
 </div>
 
 <script>
-  const form = document.getElementById('storyForm');
-  const formContainer = document.getElementById('formContainer');
-  const promptTextarea = document.getElementById('prompt');
-  const loadingState = document.getElementById('loadingState');
-  const resultState = document.getElementById('resultState');
-  const errorState = document.getElementById('errorState');
-  const submitBtn = document.getElementById('submitBtn');
-  
-  const loadingBg = document.getElementById('loadingBg');
-  const wandIcon = document.getElementById('wandIcon');
-  const loadingSpinner = document.getElementById('loadingSpinner');
-  const langSelector = document.getElementById('language-selector');
+  const $ = (id: string) => document.getElementById(id)!;
+  const form = $('storyForm') as HTMLFormElement;
+  const formContainer = $('formContainer');
+  const promptTextarea = $('prompt') as HTMLTextAreaElement;
+  const loadingState = $('loadingState');
+  const loadingStage = $('loadingStage');
+  const resultState = $('resultState');
+  const storyPages = $('storyPages');
+  const errorState = $('errorState');
+  const errorMessage = $('errorMessage');
+  const retryBtn = $('retryBtn');
+  const submitBtn = $('submitBtn') as HTMLButtonElement;
+  const langSelector = $('language-selector') as HTMLSelectElement;
+  const readAloudBtn = $('readAloudBtn');
+  const readAloudLabel = $('readAloudLabel');
+  const newStoryBtn = $('newStoryBtn');
 
-  if (form && formContainer && promptTextarea && loadingState && resultState && errorState && submitBtn && loadingBg && wandIcon && loadingSpinner && langSelector) {
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+  const I18N = {
+    stages: JSON.parse(document.getElementById('i18n-stages')!.textContent!),
+    errorFriendly: document.getElementById('i18n-error')!.textContent!,
+    readAloud: document.getElementById('i18n-read')!.textContent!,
+    stopReading: document.getElementById('i18n-stop')!.textContent!,
+  };
 
-      // Show loading state
-      loadingState.classList.remove('hidden');
-      resultState.classList.add('hidden', 'opacity-0');
-      errorState.classList.add('hidden');
-      submitBtn.disabled = true;
-      loadingBg.classList.remove('opacity-0');
-      loadingBg.classList.add('opacity-100');
-      wandIcon.classList.add('hidden');
-      loadingSpinner.classList.remove('hidden');
+  const SPEECH_LANG: Record<string, string> = {
+    en: 'en-US', ne: 'ne-NP', hi: 'hi-IN', bn: 'bn-IN', te: 'te-IN', es: 'es-ES',
+  };
 
-      try {
-        const response = await fetch('/api/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: promptTextarea.value,
-            lang: langSelector.value,
-          }),
-        });
+  let stageTimer: ReturnType<typeof setInterval> | null = null;
+  let currentStory: Array<{ text: string; imageUrl?: string; imagePrompt?: string }> = [];
+  let speaking = false;
 
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.error || 'An unknown error occurred');
-        }
+  function show(el: HTMLElement) { el.classList.remove('hidden'); }
+  function hide(el: HTMLElement) { el.classList.add('hidden'); }
 
-        const { story } = await response.json();
+  function startLoading() {
+    hide(errorState); hide(resultState); show(loadingState);
+    submitBtn.disabled = true;
+    let i = 0;
+    loadingStage.textContent = I18N.stages[0];
+    stageTimer = setInterval(() => {
+      i = Math.min(i + 1, I18N.stages.length - 1);
+      loadingStage.textContent = I18N.stages[i];
+    }, 6000);
+    loadingState.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
-        // Clear previous results
-        resultState.innerHTML = '';
+  function stopLoading() {
+    hide(loadingState);
+    submitBtn.disabled = false;
+    if (stageTimer) { clearInterval(stageTimer); stageTimer = null; }
+  }
 
-        // Render new story
-        story.forEach(segment => {
-          const segmentDiv = document.createElement('div');
-          segmentDiv.className = 'bg-white p-6 rounded-lg shadow-md transform transition-all duration-300 hover:shadow-lg';
-          
-          const p = document.createElement('p');
-          p.className = 'text-gray-800 mb-4 leading-relaxed';
-          p.textContent = segment.text;
-          segmentDiv.appendChild(p);
+  function renderStory(story: typeof currentStory) {
+    currentStory = story;
+    storyPages.innerHTML = '';
+    story.forEach((segment, idx) => {
+      const page = document.createElement('article');
+      page.className = 'story-page bg-card rounded-3xl shadow-page hover:shadow-page-hover border border-ink/10 overflow-hidden transition-shadow animate-pagein';
+      page.style.animationDelay = `${idx * 120}ms`;
 
-          if (segment.imageUrl) {
-            const img = document.createElement('img');
-            img.src = segment.imageUrl;
-            img.alt = segment.imagePrompt;
-            img.className = 'w-full h-auto rounded-lg shadow-sm';
-            segmentDiv.appendChild(img);
-          }
-
-          resultState.appendChild(segmentDiv);
-        });
-
-        resultState.classList.remove('hidden', 'opacity-0');
-
-      } catch (e) {
-        const error = e instanceof Error ? e.message : 'An error occurred';
-        errorState.textContent = error;
-        errorState.classList.remove('hidden');
-      } finally {
-        // Hide loading state
-        loadingState.classList.add('hidden');
-        submitBtn.disabled = false;
-        loadingBg.classList.add('opacity-0');
-        loadingBg.classList.remove('opacity-100');
-        wandIcon.classList.remove('hidden');
-        loadingSpinner.classList.add('hidden');
+      if (segment.imageUrl) {
+        const img = document.createElement('img');
+        img.src = segment.imageUrl;
+        img.alt = segment.imagePrompt || `Illustration ${idx + 1}`;
+        img.loading = 'lazy';
+        img.className = 'w-full aspect-[3/2] object-cover';
+        page.appendChild(img);
       }
-    });
 
-    promptTextarea.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        submitBtn.click();
-      }
-    });
+      const body = document.createElement('div');
+      body.className = 'p-7 sm:p-8';
+      const p = document.createElement('p');
+      p.className = 'story-text font-display text-lg sm:text-xl leading-relaxed sm:leading-loose';
+      p.textContent = segment.text;
+      body.appendChild(p);
 
-    langSelector.addEventListener('change', (event) => {
-      const selectElement = event.target;
-      const newLang = selectElement.value;
-      
-      // Set cookie to expire in 30 days, making it persistent across sessions.
-      const d = new Date();
-      d.setTime(d.getTime() + (30 * 24 * 60 * 60 * 1000));
-      document.cookie = `language=${newLang};expires=${d.toUTCString()};path=/;SameSite=Lax`;
-      window.location.reload();
+      const pageNum = document.createElement('p');
+      pageNum.className = 'text-center text-ink-soft/70 text-sm mt-5 select-none';
+      pageNum.textContent = `— ${idx + 1} —`;
+      body.appendChild(pageNum);
+
+      page.appendChild(body);
+      storyPages.appendChild(page);
+    });
+    show(resultState);
+    resultState.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function generate() {
+    const prompt = promptTextarea.value.trim();
+    if (!prompt) return;
+    startLoading();
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, lang: langSelector.value }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'error');
+      if (!Array.isArray(data.story) || data.story.length === 0) throw new Error('empty');
+      renderStory(data.story);
+    } catch {
+      errorMessage.textContent = I18N.errorFriendly;
+      show(errorState);
+    } finally {
+      stopLoading();
+    }
+  }
+
+  function stopSpeaking() {
+    speechSynthesis.cancel();
+    speaking = false;
+    readAloudLabel.textContent = I18N.readAloud;
+    document.querySelectorAll('.story-page').forEach((p) => p.classList.remove('reading'));
+  }
+
+  function readAloud() {
+    if (speaking) { stopSpeaking(); return; }
+    if (!('speechSynthesis' in window) || currentStory.length === 0) return;
+    speaking = true;
+    readAloudLabel.textContent = I18N.stopReading;
+    const pages = Array.from(document.querySelectorAll('.story-page'));
+    const langCode = SPEECH_LANG[langSelector.value] || 'en-US';
+
+    currentStory.forEach((segment, idx) => {
+      const u = new SpeechSynthesisUtterance(segment.text);
+      u.lang = langCode;
+      u.rate = 0.92;
+      u.onstart = () => {
+        pages.forEach((p) => p.classList.remove('reading'));
+        pages[idx]?.classList.add('reading');
+        pages[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+      if (idx === currentStory.length - 1) u.onend = () => stopSpeaking();
+      speechSynthesis.speak(u);
     });
   }
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); stopSpeaking(); generate(); });
+  retryBtn.addEventListener('click', () => generate());
+  newStoryBtn.addEventListener('click', () => {
+    stopSpeaking();
+    hide(resultState); hide(errorState);
+    promptTextarea.value = '';
+    promptTextarea.focus();
+    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  readAloudBtn.addEventListener('click', readAloud);
+
+  document.querySelectorAll<HTMLButtonElement>('.chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      promptTextarea.value = chip.textContent!.trim();
+      promptTextarea.focus();
+    });
+  });
+
+  promptTextarea.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      submitBtn.click();
+    }
+  });
+
+  langSelector.addEventListener('change', () => {
+    const d = new Date();
+    d.setTime(d.getTime() + 30 * 24 * 60 * 60 * 1000);
+    document.cookie = `language=${langSelector.value};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    window.location.reload();
+  });
+
+  window.addEventListener('beforeunload', () => speechSynthesis?.cancel());
 </script>
+
+<!-- i18n payload for the client script -->
+<script type="application/json" id="i18n-stages" is:inline set:html={JSON.stringify(loadingStages)} />
+<script type="text/plain" id="i18n-error" is:inline set:html={t('errorFriendly')} />
+<script type="text/plain" id="i18n-read" is:inline set:html={t('readAloud')} />
+<script type="text/plain" id="i18n-stop" is:inline set:html={t('stopReading')} />
+
+<style>
+  .story-page.reading {
+    outline: 3px solid rgb(var(--c-gold) / 0.7);
+    outline-offset: 3px;
+  }
+</style>

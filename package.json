@@ -1,8 +1,8 @@
 {
-  "name": "astro-story-generator",
+  "name": "tales-genie",
   "version": "0.1.0",
   "private": true,
-  "description": "An AI-powered story generator built with Astro and Google's Gemini API. This application creates engaging stories with inline images generated along the plot line.",
+  "description": "AI-powered illustrated bedtime stories for kids, in six languages. Built by Parents in Tech, runs free on Cloudflare Workers AI.",
   "type": "module",
   "scripts": {
     "dev": "astro dev",
@@ -16,13 +16,16 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.1",
+    "@astrojs/check": "^0.9.9",
     "@astrojs/cloudflare": "^12.6.0",
     "@astrojs/tailwind": "^6.0.1",
-    
+    "@fontsource-variable/fraunces": "^5.2.9",
+    "@fontsource-variable/nunito": "^5.2.7",
     "@google/generative-ai": "^0.2.1",
     "ai": "^4.2.0",
     "astro": "^5.5.4",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",
@@ -40,23 +43,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openrijal/astro-story-generator.git"
+    "url": "git+https://github.com/parents-in-tech/tales-genie.git"
   },
   "keywords": [
     "astro",
     "story-generator",
     "ai",
-    "gemini",
-    "google-ai"
+    "cloudflare-workers-ai",
+    "kids",
+    "bedtime-stories"
   ],
   "author": {
-    "name": "Nitesh Rijal",
-    "url": "https://github.com/openrijal"
+    "name": "Parents in Tech",
+    "url": "https://parentsintech.org"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/openrijal/astro-story-generator/issues"
+    "url": "https://github.com/parents-in-tech/tales-genie/issues"
   },
-  "homepage": "https://github.com/openrijal/astro-story-generator#readme",
+  "homepage": "https://talesgenie.parentsintech.org",
   "packageManager": "pnpm@8.14.3+sha512.c3ed80eb583be3e2b7ef31eb96b8b9cfaa0503e5d44ec717514120b5187b2f933736e9038c51a5a23ad582790ba41d4ab784618c89fa7e2365f6665685d612ee"
 }

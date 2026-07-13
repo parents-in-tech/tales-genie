@@ -8,5 +8,18 @@
   "talesGenie": "Tales Genie",
   "allRightsReserved": "All rights reserved.",
   "createStories": "Create unique stories with AI-generated text and images",
-  "letYourImaginationRunWild": "Let your imagination run wild"
+  "letYourImaginationRunWild": "Let your imagination run wild",
+  "madeBy": "Made with ♥ by Parents in Tech",
+  "promptLabel": "What should tonight's story be about?",
+  "chip1": "A dragon who is afraid of the dark",
+  "chip2": "Two best friends build a rocket to the Moon",
+  "chip3": "The cat who dreamed of being a chef",
+  "loadingDreaming": "The genie is dreaming up your tale…",
+  "loadingWriting": "Writing the words…",
+  "loadingPainting": "Painting the pictures…",
+  "readAloud": "Read aloud",
+  "stopReading": "Stop reading",
+  "theEnd": "The End",
+  "tryAgain": "Try again",
+  "errorFriendly": "Oh no — the genie got tangled in his lamp! Let's try again."
 }

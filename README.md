@@ -1,95 +1,54 @@
 # Tales Genie
 
-An AI-powered story generator built with Astro and Google's Gemini API. This application creates engaging stories with inline images generated along the plot line.
+**Live at [talesgenie.parentsintech.org](https://talesgenie.parentsintech.org)**
 
-## Features
+AI-powered illustrated bedtime stories for kids, in six languages (English, नेपाली, हिन्दी, বাংলা, తెలుగు, Español). Type an idea, and the genie writes a gentle 3–5 scene story with a watercolor illustration for every scene — plus read-aloud narration in the story's language.
 
-- AI-powered story generation using Google's Gemini model
-- Automatic image generation for story segments
-- Responsive design with Tailwind CSS
-- Server-side rendering with Astro
+Built by [Parents in Tech](https://parentsintech.org). Runs entirely on Cloudflare's free tier: **$0 to host**.
 
-## Tech Stack
+![Tales Genie demo](demo.png)
 
-- [Astro](https://astro.build/) - The web framework for content-driven websites
-- [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework
-- [Google Gemini AI](https://ai.google.dev/) - For story and image generation
-- [Cloudflare](https://cloudflare.com/) - For deployment and hosting
+## How it works
 
-## Getting Started
+Everything runs in one Cloudflare Worker:
 
-### Prerequisites
+- **Story text** — Cloudflare Workers AI (`llama-3.3-70b-instruct-fp8-fast`) with an enforced JSON schema. If a `GOOGLE_GENERATIVE_AI_API_KEY` secret is set, Gemini is used instead (better multilingual prose) with Workers AI as fallback.
+- **Illustrations** — Workers AI (`flux-1-schnell`), generated in parallel with per-image timeouts and placeholder fallbacks.
+- **Kid safety** — the system prompt constrains stories to gentle, age-appropriate content (ages 3–8) and redirects inappropriate prompts to wholesome themes.
+- **Abuse protection** — per-IP rate limiting (6 stories / 10 min) and a 300-character prompt cap.
+- **Read aloud** — browser Web Speech API, follows the selected story language.
 
-- Node.js 18.14.1 or later
-- pnpm (recommended) or npm
-- Google Gemini API key
+With no Cloudflare AI binding and no Gemini key (e.g. plain local dev without wrangler auth), the API returns a mock story so the full UI flow works offline.
 
-### Installation
+## Development
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/<yourusername>/tales-genie.git
-   cd tales-genie
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   pnpm install
-   ```
-
-3. Create a `.env` file in the root directory and add your Google Gemini API key:
-
-   ```bash
-   GOOGLE_GENERATIVE_AI_API_KEY=your_api_key_here
-   ```
-
-4. Start the development server:
-
-   ```bash
-   pnpm dev
-   ```
-
-5. Open [http://localhost:4321](http://localhost:4321) in your browser.
-
-## Project Structure
-
-```bash
-story-generator/
-├── public/              # Static assets
-│   ├── img/            # Images
-│   └── fonts/          # Fonts
-├── src/
-│   ├── components/     # React components
-│   ├── data/          # Data files
-│   ├── pages/         # Astro pages
-│   ├── lib/           # Utility libraries
-│   └── utils/         # Utility functions
-├── astro.config.mjs   # Astro configuration
-├── package.json       # Project dependencies
-└── README.md         # Project documentation
+```sh
+pnpm install
+pnpm dev          # local dev; uses mock stories unless wrangler is authenticated
+pnpm type-check   # astro check + tsc
+pnpm build        # production build (runs type checks first)
+npx wrangler dev  # run the real Worker locally (uses your Cloudflare account for AI)
 ```
 
 ## Deployment
 
-This project is configured for deployment on Vercel. To deploy:
+```sh
+npx wrangler deploy
+```
 
-1. Push your code to GitHub
-2. Import the repository in Cloudflare
-3. Add your environment variables in the Cloudflare dashboard
-4. Deploy!
+Deploys to the custom domain configured in `wrangler.toml` (`talesgenie.parentsintech.org`). Requirements:
 
-## Contributing
+- `wrangler login` with access to the Cloudflare account in `wrangler.toml`
+- Optional: `npx wrangler secret put GOOGLE_GENERATIVE_AI_API_KEY` for Gemini text generation ([free key](https://aistudio.google.com/apikey))
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Costs
+
+| Piece | Free tier |
+|---|---|
+| Cloudflare Workers | 100k requests/day |
+| Workers AI | 10k neurons/day (≈20–40 illustrated stories) |
+| Gemini (optional) | generous free tier, no card required |
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Google Gemini AI for providing the AI capabilities
-- Astro team for the amazing framework
-- Cloudflare for hosting and deployment
+MIT

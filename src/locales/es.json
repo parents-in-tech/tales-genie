@@ -8,5 +8,18 @@
   "talesGenie": "Tales Genie",
   "allRightsReserved": "Todos los derechos reservados.",
   "createStories": "Crea historias únicas con texto e imágenes generadas por IA",
-  "letYourImaginationRunWild": "Deja volar tu imaginación"
+  "letYourImaginationRunWild": "Deja volar tu imaginación",
+  "madeBy": "Hecho con ♥ por Parents in Tech",
+  "promptLabel": "¿De qué tratará el cuento de esta noche?",
+  "chip1": "Un dragón que le teme a la oscuridad",
+  "chip2": "Dos mejores amigos construyen un cohete a la Luna",
+  "chip3": "El gato que soñaba con ser chef",
+  "loadingDreaming": "El genio está imaginando tu cuento…",
+  "loadingWriting": "Escribiendo las palabras…",
+  "loadingPainting": "Pintando las ilustraciones…",
+  "readAloud": "Leer en voz alta",
+  "stopReading": "Detener",
+  "theEnd": "Fin",
+  "tryAgain": "Intentar de nuevo",
+  "errorFriendly": "¡Vaya! El genio se enredó en su lámpara. Intentémoslo de nuevo."
 }

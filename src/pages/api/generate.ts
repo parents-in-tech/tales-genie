@@ -53,6 +53,11 @@ const StorySchema = z.object({
 
 type Segment = { text: string; imagePrompt?: string; imageUrl?: string };
 
+/** Minimal shape of the Cloudflare Workers AI binding. */
+interface WorkersAI {
+  run(model: string, inputs: Record<string, unknown>): Promise<Record<string, unknown>>;
+}
+
 function systemPrompt(langName: string): string {
   return [
     'You are a gentle storyteller writing bedtime stories for children aged 3 to 8.',
@@ -76,7 +81,7 @@ async function storyViaGemini(apiKey: string, prompt: string, langName: string) 
   return object.segments;
 }
 
-async function storyViaWorkersAI(ai: any, prompt: string, langName: string) {
+async function storyViaWorkersAI(ai: WorkersAI, prompt: string, langName: string) {
   const result = await ai.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
     messages: [
       { role: 'system', content: systemPrompt(langName) },
@@ -126,7 +131,7 @@ function mockStory(prompt: string, langName: string): Segment[] {
 
 // ---------- Image provider ----------
 
-async function imageViaWorkersAI(ai: any, prompt: string): Promise<string> {
+async function imageViaWorkersAI(ai: WorkersAI, prompt: string): Promise<string> {
   const result = await ai.run('@cf/black-forest-labs/flux-1-schnell', {
     prompt: `Soft warm children's storybook watercolor illustration, gentle colors, no text. ${prompt}`,
     steps: 6,
@@ -178,10 +183,13 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   if (!prompt) return json({ error: 'Prompt is required' }, 400);
   const langName = LANGUAGE_NAMES[lang] ?? 'English';
 
-  const env = (locals as any)?.runtime?.env ?? {};
+  const env =
+    (locals as { runtime?: { env?: Record<string, unknown> } }).runtime?.env ?? {};
   const geminiKey: string | undefined =
-    env.GOOGLE_GENERATIVE_AI_API_KEY || import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY || undefined;
-  const ai = env.AI;
+    (env.GOOGLE_GENERATIVE_AI_API_KEY as string | undefined) ||
+    import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY ||
+    undefined;
+  const ai = env.AI as WorkersAI | undefined;
 
   // 1. Story text: try each available provider in order, ending with the mock.
   const textProviders: Array<[string, () => Promise<Segment[]>]> = [];

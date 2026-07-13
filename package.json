@@ -39,7 +39,7 @@
     "wrangler": "^4.24.0"
   },
   "engines": {
-    "node": ">=18.14.1"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
@@ -62,5 +62,5 @@
     "url": "https://github.com/parents-in-tech/tales-genie/issues"
   },
   "homepage": "https://talesgenie.parentsintech.org",
-  "packageManager": "pnpm@8.14.3+sha512.c3ed80eb583be3e2b7ef31eb96b8b9cfaa0503e5d44ec717514120b5187b2f933736e9038c51a5a23ad582790ba41d4ab784618c89fa7e2365f6665685d612ee"
+  "packageManager": "pnpm@11.8.0"
 }

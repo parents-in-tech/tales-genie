@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { env as workerEnv } from 'cloudflare:workers';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateObject } from 'ai';
 import { z } from 'zod';
@@ -154,7 +155,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 // ---------- Route ----------
 
-export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
+export const POST: APIRoute = async ({ request, clientAddress }) => {
   const json = (body: object, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
@@ -183,8 +184,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
   if (!prompt) return json({ error: 'Prompt is required' }, 400);
   const langName = LANGUAGE_NAMES[lang] ?? 'English';
 
-  const env =
-    (locals as { runtime?: { env?: Record<string, unknown> } }).runtime?.env ?? {};
+  const env = (workerEnv ?? {}) as Record<string, unknown>;
   const geminiKey: string | undefined =
     (env.GOOGLE_GENERATIVE_AI_API_KEY as string | undefined) ||
     import.meta.env.GOOGLE_GENERATIVE_AI_API_KEY ||

@@ -6,7 +6,12 @@ AI-powered illustrated bedtime stories for kids, in six languages (English, न�
 
 Built by [Parents in Tech](https://parentsintech.org). Runs entirely on Cloudflare's free tier: **$0 to host**.
 
-![Tales Genie demo](demo.png)
+![Tales Genie home page](screenshots/home.png)
+
+<p align="center">
+  <img src="screenshots/story-scene-1.jpg" width="49%" alt="Story scene: a shy red panda watching the moon from a tree" />
+  <img src="screenshots/story-scene-2.jpg" width="49%" alt="Story scene: the red panda holding a glowing lantern at the festival" />
+</p>
 
 ## How it works
 
@@ -41,6 +46,18 @@ Deploys to the custom domain configured in `wrangler.toml` (`talesgenie.parentsi
 - `wrangler login` with access to the Cloudflare account in `wrangler.toml`
 - Optional: `npx wrangler secret put GOOGLE_GENERATIVE_AI_API_KEY` for Gemini text generation ([free key](https://aistudio.google.com/apikey))
 
+Pushes to `main` also auto-deploy via GitHub Actions (`.github/workflows/deploy.yml`), which needs a `CLOUDFLARE_API_TOKEN` repository secret.
+
+### Deploy your own
+
+Want to run your own genie? It stays within Cloudflare's free tier:
+
+1. Fork/clone this repo and sign up for a free [Cloudflare](https://dash.cloudflare.com/sign-up) account.
+2. In `wrangler.toml`, set `account_id` to yours (`npx wrangler whoami` prints it) and **delete the `routes` block** — your Worker will get a free `*.workers.dev` URL. (Keep a `routes` block only if you have your own domain on Cloudflare.)
+3. `npx wrangler login`, then `pnpm install && npx wrangler deploy`.
+4. Optional: `npx wrangler secret put GOOGLE_GENERATIVE_AI_API_KEY` for nicer multilingual prose.
+5. Optional: for auto-deploy on push, add a `CLOUDFLARE_API_TOKEN` secret (Workers Scripts: Edit permission) to your GitHub fork.
+
 ## Costs
 
 | Piece | Free tier |
@@ -48,6 +65,10 @@ Deploys to the custom domain configured in `wrangler.toml` (`talesgenie.parentsi
 | Cloudflare Workers | 100k requests/day |
 | Workers AI | 10k neurons/day (≈20–40 illustrated stories) |
 | Gemini (optional) | generous free tier, no card required |
+
+## Contributing
+
+Contributions are welcome — bug reports, translations, and code. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to get started (local dev works offline with mock stories, no accounts needed). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -3,13 +3,9 @@ account_id = "6d2e606929eb69f91f43b147615f1111"
 routes = [
   { pattern = "talesgenie.parentsintech.org", custom_domain = true }
 ]
-main = "./dist/_worker.js/index.js"
+main = "@astrojs/cloudflare/entrypoints/server"
 compatibility_date = "2025-03-25"
 compatibility_flags = [ "nodejs_compat" ]
-
-[assets]
-binding = "ASSETS"
-directory = "./dist"
 
 [ai]
 binding = "AI"
